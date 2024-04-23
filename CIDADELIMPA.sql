@@ -73,7 +73,8 @@ CREATE OR REPLACE PACKAGE CIDADELIMPA AS
     );
 
 
-
+    -- Procedure que verifica se existem coletas pendentes que estão agendadas para hoje
+    PROCEDURE Check_Collections;
 
 END CIDADELIMPA;
 /
@@ -371,6 +372,33 @@ CREATE OR REPLACE PACKAGE BODY CIDADELIMPA AS
             message    => v_message
         );
     END Send_Email_Pending_Collection;
+
+
+    /*******************************************************************************************************************
+    *        Implementação da procedure que verifica se existem coletas agendadas e que ainda não foram coletadas
+    *       É necessario um Job que roda essa procedure todos os dias em uma hora determinada para que ela faça
+    *       sentindo e funcione conforme esperado.
+    *******************************************************************************************************************/
+    PROCEDURE Check_Collections AS
+        CURSOR pending_collections_cur IS
+            SELECT id_trash_to_collect
+            FROM t_st_trash_to_collect
+            WHERE dt_limit = TRUNC(SYSDATE) AND vl_status = 1;
+
+        v_collection_id t_st_trash_to_collect.id_trash_to_collect%TYPE;
+
+    BEGIN
+
+        FOR pending_collection IN pending_collections_cur LOOP
+            Send_Email_Pending_Collection(pending_collection.id_trash_to_collect);
+        END LOOP;
+
+        DBMS_OUTPUT.PUT_LINE('Coletas pendentes verificadas e notificações enviadas com sucesso.');
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Erro ao verificar as coletas pendentes: ' || SQLERRM);
+    END Check_Collections;
+
 
 END CIDADELIMPA;
 /
