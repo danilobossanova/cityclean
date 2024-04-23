@@ -10,6 +10,8 @@ CREATE OR REPLACE PACKAGE CIDADELIMPA AS
 
      -- Constante para definir o limiar de ocupação alta da lixeira - Usada na Trigger que monitora o status da lixeixa.
     C_HIGH_OCCUPATION_THRESHOLD CONSTANT NUMBER := 3;
+    C_MEDIUM_OCCUPATION_THRESHOLD CONSTANT t_st_trash.vl_status%TYPE := 2;
+    C_LOW_OCCUPATION_THRESHOLD CONSTANT t_st_trash.vl_status%TYPE := 1;
 
     -- Constante para o status de coleta realizada
     C_COLLECTION_COMPLETED CONSTANT t_st_trash_to_collect.vl_status%TYPE := 2;
@@ -42,6 +44,12 @@ CREATE OR REPLACE PACKAGE CIDADELIMPA AS
     PROCEDURE ADD_TO_COLLECTION_QUEUE (
         p_trash_id IN t_st_trash.id_trash%TYPE,
         p_return OUT VARCHAR2 
+    );
+
+    -- Procedure para atualiza o status da fila da coleta de lixo.
+    PROCEDURE UPDATE_COLLECTION_QUEUE_STATUS (
+        p_trash_id IN t_st_trash_to_collect.t_st_trash_id_trash%TYPE,
+        p_status IN NUMBER
     );
 
 
@@ -225,6 +233,34 @@ CREATE OR REPLACE PACKAGE BODY CIDADELIMPA AS
         WHEN OTHERS THEN
             p_return := 'Erro ao adicionar lixeira à fila de coleta: ' || SQLERRM;
     END ADD_TO_COLLECTION_QUEUE;
+
+
+    /*******************************************************************************************************************
+    *               Implementação da procedure que atualiza o status da 'fila' da coleta de lixo
+    *******************************************************************************************************************/
+
+    PROCEDURE UPDATE_COLLECTION_QUEUE_STATUS (
+        p_trash_id IN t_st_trash_to_collect.t_st_trash_id_trash%TYPE,
+        p_status IN NUMBER
+    )
+    IS
+    BEGIN
+        -- Atualiza o status na tabela t_st_trash_to_collect para indicar que a coleta foi feita
+        UPDATE t_st_trash_to_collect
+        SET vl_status = p_status
+        WHERE t_st_trash_id_trash = p_trash_id
+        AND vl_status = 3;
+        
+        -- Confirma a transação
+        COMMIT;
+        
+        DBMS_OUTPUT.PUT_LINE('Status da fila de coleta atualizado com sucesso.');
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('Nenhuma lixeira encontrada com o ID fornecido: ' || p_trash_id);
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Erro ao atualizar o status da fila de coleta: ' || SQLERRM);
+    END UPDATE_COLLECTION_QUEUE_STATUS;
 
 
 

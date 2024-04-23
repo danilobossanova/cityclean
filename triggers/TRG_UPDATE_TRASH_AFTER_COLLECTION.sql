@@ -18,9 +18,6 @@ BEGIN
     -- Captura o id da lixeira afetada pela coleta
     v_trash_id := :NEW.t_st_trash_id_trash;
 
-    -- Atualiza o status na tabela t_st_trash_to_collect para indicar que a coleta foi feita
-   CIDADELIMPA.UPDATE_COLLECTION_STATUS(v_trash_id,v_retorno);
-
     -- Chama a procedure para zerar a taxa de ocupação da lixeira
     CIDADELIMPA.UPDATE_TRASH_OCCUPATION(v_trash_id, 0);
 
