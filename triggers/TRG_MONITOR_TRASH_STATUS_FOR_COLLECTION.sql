@@ -38,22 +38,6 @@ BEGIN
     END CASE;
 
 
-
-    -- Verifica se o vl_status da lixeira é maior ou igual a 3. Se for, gera uma nova coleta.
-    IF :NEW.vl_status >= CIDADELIMPA.C_HIGH_OCCUPATION_THRESHOLD THEN
-
-        -- Verifica se já existe uma coleta programada para esta lixeira
-        v_existing_collections := nvl(CIDADELIMPA.CHECK_EXISTING_COLLECTION(p_trash_id),0);
-
-        IF v_existing_collections = 0 THEN
-            -- Chama a procedure para adicionar a lixeira à fila de coleta
-            CIDADELIMPA.ADD_TO_COLLECTION_QUEUE(:NEW.id_trash, SYSDATE);
-        ELSE
-            DBMS_OUTPUT.PUT_LINE('Já existe uma coleta programada para esta lixeira.');
-        END IF;
-    END IF;
-
-
 EXCEPTION
     WHEN OTHERS THEN
         DBMS_OUTPUT.PUT_LINE('Erro ao monitorar o status da lixeira: ' || SQLERRM);
