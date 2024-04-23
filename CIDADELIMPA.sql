@@ -52,6 +52,11 @@ CREATE OR REPLACE PACKAGE CIDADELIMPA AS
         p_collect_date IN DATE,
         p_return OUT VARCHAR2
     );
+
+    --Procedure que realiza a atualização do status da lixeira
+    PROCEDURE UPDATE_COLLECTION_STATUS(
+        p_trash_id IN t_st_trash_to_collect.t_st_trash_id_trash%TYPE
+    )
     
 
 
@@ -273,6 +278,32 @@ CREATE OR REPLACE PACKAGE BODY CIDADELIMPA AS
             p_return := 'Erro ao inserir a coleta: ' || SQLERRM;
     END INSERT_COLLECTION;
 
+
+
+    /*******************************************************************************************************************
+    *               Implementação da procedure que atualiza o status da coleta da lixeira
+    *******************************************************************************************************************/ 
+
+    PROCEDURE UPDATE_COLLECTION_STATUS(
+        p_trash_id IN t_st_trash_to_collect.t_st_trash_id_trash%TYPE,
+        p_return OUT VARCHAR2
+    )
+    IS
+    BEGIN
+        -- Atualiza o status na tabela t_st_trash_to_collect para indicar que a coleta foi feita
+        UPDATE t_st_trash_to_collect
+        SET vl_status = C_COLLECTION_COMPLETED -- Valor = 2
+        WHERE t_st_trash_id_trash = p_trash_id 
+        AND vl_status = 1; -- Coleta 'Em Aberto'
+        
+        -- Confirma a transação
+        COMMIT;
+        
+        p_return := 'Status da coleta atualizado com sucesso.';
+    EXCEPTION
+        WHEN OTHERS THEN
+            p_return := 'Erro ao atualizar o status da coleta: ' || SQLERRM;
+    END UPDATE_COLLECTION_STATUS;
 
 END CIDADELIMPA;
 /
