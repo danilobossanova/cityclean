@@ -11,6 +11,10 @@ CREATE OR REPLACE PACKAGE CIDADELIMPA AS
      -- Constante para definir o limiar de ocupação alta da lixeira - Usada na Trigger que monitora o status da lixeixa.
     C_HIGH_OCCUPATION_THRESHOLD CONSTANT NUMBER := 3;
 
+    -- Constante para o status de coleta realizada
+    C_COLLECTION_COMPLETED CONSTANT t_st_trash_to_collect.vl_status%TYPE := 2;
+
+
 
     -- Função para calcular o status com base na taxa de ocupação
     FUNCTION CALCULATE_STATUS(
