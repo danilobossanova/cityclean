@@ -64,8 +64,15 @@ CREATE OR REPLACE PACKAGE CIDADELIMPA AS
     --Procedure que realiza a atualização do status da lixeira
     PROCEDURE UPDATE_COLLECTION_STATUS(
         p_trash_id IN t_st_trash_to_collect.t_st_trash_id_trash%TYPE
-    )
+    );
     
+
+    -- Procedure que realiza o envio de e-mail sobre coletas que vencem hoje
+    PROCEDURE Send_Email_Pending_Collection (
+        p_collection_id IN t_st_trash_to_collect.id_trash_to_collect%TYPE
+    );
+
+
 
 
 END CIDADELIMPA;
@@ -340,6 +347,30 @@ CREATE OR REPLACE PACKAGE BODY CIDADELIMPA AS
         WHEN OTHERS THEN
             p_return := 'Erro ao atualizar o status da coleta: ' || SQLERRM;
     END UPDATE_COLLECTION_STATUS;
+
+
+    /*******************************************************************************************************************
+    *               Implementação da procedure envia e-mail para equipe de coleta
+    *******************************************************************************************************************/
+
+    PROCEDURE Send_Email_Pending_Collection (
+        p_collection_id IN t_st_trash_to_collect.id_trash_to_collect%TYPE
+    ) AS
+        v_recipient_email VARCHAR2(100) := 'coletores@cidadelimpa.com.br';
+        v_subject VARCHAR2(100) := 'Coleta Pendente';
+        v_message VARCHAR2(4000);
+    BEGIN
+
+        v_message := 'Coleta pendente vencendo hoje: # ' || p_collection_id;
+
+        -- Envia o e-mail. O Objeto UTL_MAIL precisa estar devidamente configurano no Oracle
+        UTL_MAIL.SEND(
+            sender     => 'naoresponder@cidadelimpa.com.br',
+            recipients => v_recipient_email,
+            subject    => v_subject,
+            message    => v_message
+        );
+    END Send_Email_Pending_Collection;
 
 END CIDADELIMPA;
 /
