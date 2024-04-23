@@ -218,9 +218,56 @@ CREATE OR REPLACE PACKAGE BODY CIDADELIMPA AS
     END ADD_TO_COLLECTION_QUEUE;
 
 
+
     /*******************************************************************************************************************
-    *               Implementação da procedure para colocar a lixeira na 'fila' de coletas
+    *               Implementação da procedure inserir uma coleta na tabela de coletas
     *******************************************************************************************************************/ 
+    PROCEDURE INSERT_COLLECTION (
+        p_trash_id IN t_st_trash.id_trash%TYPE,
+        p_truck_id IN t_st_truck.id_truck%TYPE,
+        p_collect_date IN DATE,
+        p_return OUT VARCHAR2
+    )
+    IS
+    BEGIN
+        -- Inicializa a variável de retorno
+        p_return := '';
+
+        -- Verifica se o id da lixeira e o id do caminhão fornecidos são válidos
+        IF NOT EXISTS (SELECT 1 FROM t_st_trash WHERE id_trash = p_trash_id) THEN
+            p_return := 'Erro: O id da lixeira fornecido é inválido.';
+            RETURN;
+        END IF;
+        
+        IF NOT EXISTS (SELECT 1 FROM t_st_truck WHERE id_truck = p_truck_id) THEN
+            p_return := 'Erro: O id do caminhão fornecido é inválido.';
+            RETURN;
+        END IF;
+
+        -- Insere a nova coleta na tabela t_st_collect
+        INSERT INTO t_st_collect (
+            id_collect,
+            t_st_trash_id_trash,
+            t_st_truck_id_truck,
+            dt_collect
+        ) VALUES (
+            SEQ_COLLECT.NEXTVAL,
+            p_trash_id,
+            p_truck_id,
+            nvl(p_collect_date,SYSDATE)
+        );
+
+        
+        -- Confirma a transação
+        COMMIT;
+        
+        -- Define a mensagem de sucesso
+        p_return := 'Coleta inserida com sucesso.';
+    EXCEPTION
+        WHEN OTHERS THEN
+            -- Define a mensagem de erro
+            p_return := 'Erro ao inserir a coleta: ' || SQLERRM;
+    END INSERT_COLLECTION;
 
 
 END CIDADELIMPA;
