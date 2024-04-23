@@ -49,7 +49,8 @@ CREATE OR REPLACE PACKAGE CIDADELIMPA AS
     -- Procedure para atualiza o status da fila da coleta de lixo.
     PROCEDURE UPDATE_COLLECTION_QUEUE_STATUS (
         p_trash_id IN t_st_trash_to_collect.t_st_trash_id_trash%TYPE,
-        p_status IN NUMBER
+        p_status IN NUMBER,
+        p_date_collect IN DATE DEFAULT NULL
     );
 
 
@@ -252,13 +253,15 @@ CREATE OR REPLACE PACKAGE BODY CIDADELIMPA AS
 
     PROCEDURE UPDATE_COLLECTION_QUEUE_STATUS (
         p_trash_id IN t_st_trash_to_collect.t_st_trash_id_trash%TYPE,
-        p_status IN NUMBER
+        p_status IN NUMBER,
+        p_date_collect IN DATE DEFAULT NULL
     )
     IS
     BEGIN
         -- Atualiza o status na tabela t_st_trash_to_collect para indicar que a coleta foi feita
         UPDATE t_st_trash_to_collect
-        SET vl_status = p_status
+        SET vl_status = p_status,
+            dt_collect = nvl(p_date_collect,SYSDATE)
         WHERE t_st_trash_id_trash = p_trash_id
         AND vl_status = 3;
         
@@ -339,7 +342,7 @@ CREATE OR REPLACE PACKAGE BODY CIDADELIMPA AS
     BEGIN
         -- Atualiza o status na tabela t_st_trash_to_collect para indicar que a coleta foi feita
         UPDATE t_st_trash_to_collect
-        SET vl_status = C_COLLECTION_COMPLETED -- Valor = 2
+        SET vl_status = C_COLLECTION_COMPLETED -- Valor = 0
         WHERE t_st_trash_id_trash = p_trash_id 
         AND vl_status = 1; -- Coleta 'Em Aberto'
         
