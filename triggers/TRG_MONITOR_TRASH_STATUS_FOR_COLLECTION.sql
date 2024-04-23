@@ -19,7 +19,7 @@ BEGIN
     WHEN :NEW.vl_status = CIDADELIMPA.C_LOW_OCCUPATION_THRESHOLD THEN -- Taxa de ocupação baixa. Coleta foi feita.
 
         -- Atualiza o Status da Coleta para indicar que a coleta foi feita e que a coleta deve ser 'fechada'
-        CIDADELIMPA.UPDATE_COLLECTION_QUEUE_STATUS(:NEW.id_trash, 2);
+        CIDADELIMPA.UPDATE_COLLECTION_QUEUE_STATUS(:NEW.id_trash, 0);
 
 
     
