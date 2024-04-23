@@ -76,6 +76,9 @@ CREATE OR REPLACE PACKAGE CIDADELIMPA AS
     -- Procedure que verifica se existem coletas pendentes que estão agendadas para hoje
     PROCEDURE Check_Collections;
 
+    -- Procedure que cria o job para verificar as coletas pendentes
+    PROCEDURE Schedule_Daily_Job;
+
 END CIDADELIMPA;
 /
 
@@ -399,6 +402,27 @@ CREATE OR REPLACE PACKAGE BODY CIDADELIMPA AS
             DBMS_OUTPUT.PUT_LINE('Erro ao verificar as coletas pendentes: ' || SQLERRM);
     END Check_Collections;
 
+
+    /*******************************************************************************************************************
+    *        Implementação da procedure cria um job que é executado todos os dias às 03:00 da manhã
+    *
+    *******************************************************************************************************************/
+    PROCEDURE Schedule_Daily_Job AS
+    BEGIN
+        DBMS_SCHEDULER.CREATE_JOB(
+            job_name => 'VERIFY_COLLECTIONS_JOB',
+            job_type => 'PLSQL_BLOCK',
+            job_action => 'BEGIN CIDADELIMPA.Check_Collections; END;', -- Executa a procedure que checa as coletas
+            start_date => TRUNC(SYSDATE) + 1, -- Inicia no próximo dia
+            repeat_interval => 'FREQ=DAILY; BYHOUR=3; BYMINUTE=0; BYSECOND=0;', -- Executa diariamente às 3:00 AM
+            enabled => TRUE
+        );
+
+        DBMS_OUTPUT.PUT_LINE('Job agendado com sucesso para verificar as coletas pendentes diariamente.');
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Erro ao agendar o job para verificar as coletas pendentes: ' || SQLERRM);
+    END Schedule_Daily_Job;
 
 END CIDADELIMPA;
 /
